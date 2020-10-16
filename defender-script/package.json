@@ -10,7 +10,7 @@
     "ethers": "^5.0.14"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "chainlink-pricer": "node chainlink-pricer-bot.js"
   },
   "keywords": [
     "Bots",

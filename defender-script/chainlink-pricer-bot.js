@@ -12,10 +12,10 @@ const OtokenAbi = require('./abi/Otoken.json');
 
 /**
  * Check if underlying, collateral or strike asset is equal to pricer asset
- * @param {*} pricerAsset 
- * @param {*} underlyingAsset 
- * @param {*} collateralAsset 
- * @param {*} strikeAsset 
+ * @param {*} pricerAsset       asset that the pricer support
+ * @param {*} underlyingAsset   otoken underlying asset
+ * @param {*} collateralAsset   otoken collateral asset
+ * @param {*} strikeAsset       otoken strike asset
  */
 function isSupported(pricerAsset, underlyingAsset, collateralAsset, strikeAsset) {
     return pricerAsset == underlyingAsset || pricerAsset == collateralAsset || pricerAsset == strikeAsset;
@@ -37,7 +37,7 @@ exports.handler = async function(credentials) {
     // Relayer: 0x5f4ee22c55931836949c4574a6a43473b3062fd7
     // AddressBook: 0x7630e7dE53E3d1f298f653d27fcF3710c602331C
     // Pricer: 0x7Db1614710866899d3D99dE44c27b460db0c35eA
-    
+
     const relayerAddress = '0x5f4ee22c55931836949c4574a6a43473b3062fd7';
     const addressbookAddress = '0x7630e7dE53E3d1f298f653d27fcF3710c602331C';
     const pricerAddress = '0x7Db1614710866899d3D99dE44c27b460db0c35eA';
