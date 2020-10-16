@@ -1,0 +1,28 @@
+{
+  "name": "defender-script",
+  "version": "1.0.0",
+  "description": "Gamma Protocol Bots Using OZ Defender",
+  "main": "index.js",
+  "dependencies": {
+    "bignumber.js": "^9.0.1",
+    "defender-relay-client": "^0.2.4",
+    "dotenv": "^8.2.0",
+    "ethers": "^5.0.14"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Bots",
+    "Solidity",
+    "Ethereum",
+    "Opyn",
+    "Gamma"
+  ],
+  "author": "Opyn Team",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opynfinance/GammaBots.git"
+  }
+}
