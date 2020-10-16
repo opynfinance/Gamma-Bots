@@ -1,4 +1,4 @@
-# Gamma Protocol Oracle Bots
+# OZ Defender Scripts
 
 Bots, Bots everywhere using OZ Defender
 
