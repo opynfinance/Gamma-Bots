@@ -97,7 +97,7 @@ exports.handler = async function(credentials) {
                 let isLockingPeriodOver = await oracle.isLockingPeriodOver(pricerAsset, expiryTimestamp);
 
                 // need to improve this as this will push again price if price pushed equal to zero
-                if((expiryPrice[0].toNumber() != 0) && isLockingPeriodOver) {
+                if((expiryPrice[0].toNumber() == 0) && isLockingPeriodOver) {
                     let roundId = await chainlinkAggregator.latestRound();
 
                     console.log('Chainlink round it: ', roundId.toString());
