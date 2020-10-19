@@ -40,7 +40,7 @@ exports.handler = async function(credentials) {
 
     const relayerAddress = '0x5f4ee22c55931836949c4574a6a43473b3062fd7';
     const addressbookAddress = '0x7630e7dE53E3d1f298f653d27fcF3710c602331C';
-    const pricerAddress = '0x7Db1614710866899d3D99dE44c27b460db0c35eA';
+    const pricerAddress = '0x7Db1614710866899d3D99dE44c27b460db0c35eA';         // WETH pricer
 
     // Initialize default provider and defender relayer signer
     const provider = new ethers.providers.InfuraProvider('rinkeby', process.env.INFURA_KEY);
@@ -93,6 +93,8 @@ exports.handler = async function(credentials) {
             let expiryTimestamp = await otoken.expiryTimestamp();
 
             if(currentTimestamp >= expiryTimestamp) {
+                console.log('Expired Otoken: ', otoken.address);
+                
                 let expiryPrice = await oracle.getExpiryPrice(pricerAsset, expiryTimestamp);
                 let isLockingPeriodOver = await oracle.isLockingPeriodOver(pricerAsset, expiryTimestamp);
 
