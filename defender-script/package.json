@@ -10,7 +10,8 @@
     "ethers": "^5.0.14"
   },
   "scripts": {
-    "chainlink-pricer": "node chainlink-pricer-bot.js"
+    "chainlink-pricer": "node chainlink-pricer-bot.js",
+    "compound-pricer": "node compound-pricer-bot.js"
   },
   "keywords": [
     "Bots",
