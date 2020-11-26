@@ -28,7 +28,7 @@ function isSupported(pricerAsset, underlyingAsset, collateralAsset, strikeAsset)
 //      - And no price pushed before for this asset at this timestamp in the Oracle module
 //      - And locking period is passed
 // then:
-//      - Call chainlink to get round id
+//      - Get price round id
 //      - Make transaction to the pricer
 
 // Entrypoint for the Autotask
@@ -49,20 +49,22 @@ exports.handler = async function(credentials) {
         from: relayerAddress,
     });
 
+    // addressbook instance
     const addressbook = new ethers.Contract(addressbookAddress, AddressBookAbi, signer);
-
+    // otoken factory address
     const otokenFactoryAddress = await addressbook.getOtokenFactory();
+    // oracle address
     const oracleAddress = await addressbook.getOracle();
-
+    // oTokenFactory instance
     const otokenFactory = new ethers.Contract(otokenFactoryAddress, OtokenFactory, signer);
+    // oracle instance
     const oracle = new ethers.Contract(oracleAddress, OracleAbi, signer);
+    // pricer instance
     const pricer = new ethers.Contract(pricerAddress, ChainlinkPricerAbi, signer);
-
     // asset address that this pricer support
     const pricerAsset = await pricer.asset();
     // chainlink price feed address
     const chainlinkAggregatorAddress = await pricer.aggregator();
-
     // setup chainlink price feed instance
     const chainlinkAggregator = new ethers.Contract(chainlinkAggregatorAddress, AggregatorInterfaceAbi, signer);
 
@@ -82,7 +84,6 @@ exports.handler = async function(credentials) {
     for (let i = 0; i < otokensCounter; i++) {
         let otokenAddress = await otokenFactory.otokens(i);
         let otoken = new ethers.Contract(otokenAddress, OtokenAbi, signer);
-
         let underlyingAsset = await otoken.underlyingAsset();
         let collateralAsset = await otoken.collateralAsset();
         let strikeAsset = await otoken.strikeAsset();
