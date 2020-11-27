@@ -129,7 +129,7 @@ exports.handler = async function(credentials) {
                     console.log('Found round id: ', priceRoundId);
                     console.log('Found round timestamp: ', priceRoundTimestamp);
 
-                    await pricer.setExpiryPriceInOracle(expiryTimestamp, priceRoundId);
+                    await pricer.setExpiryPriceInOracle(expiryTimestamp, priceRoundId, {gasLimit: '1000000'});
                 }
             }
         }        

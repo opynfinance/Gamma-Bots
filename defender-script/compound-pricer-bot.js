@@ -48,26 +48,20 @@ exports.handler = async function(credentials) {
     });
 
     const addressbook = new ethers.Contract(addressbookAddress, AddressBookAbi, signer);
-
     const otokenFactoryAddress = await addressbook.getOtokenFactory();
     const oracleAddress = await addressbook.getOracle();
-
     const otokenFactory = new ethers.Contract(otokenFactoryAddress, OtokenFactory, signer);
     const oracle = new ethers.Contract(oracleAddress, OracleAbi, signer);
     const pricer = new ethers.Contract(pricerAddress, CompoundPricerAbi, signer);
-
     // asset address that this pricer support
     const pricerAsset = await pricer.cToken();
     // underlying asset for pricer cToken
     const underlyingCtokenAsset = await pricer.underlying()
-    // chainlink price feed address
-    const underlyingPricer = await pricer.underlyingPricer();
 
     console.log('Oracle: ', oracle.address);
     console.log('Pricer: ', pricer.address);
     console.log('Pricer cToken: ', pricerAsset);
     console.log('cToken underlying asset: ', underlyingCtokenAsset);
-    console.log('Underlying asset pricer: ', underlyingPricer);
 
     // current timestamp in UTC milliseconds
     const currentTimestamp = Math.floor(new Date().getTime() / 1000);
@@ -80,7 +74,6 @@ exports.handler = async function(credentials) {
     for(let i = 0; i < otokensCounter; i++) {
         let otokenAddress = await otokenFactory.otokens(i);
         let otoken = new ethers.Contract(otokenAddress, OtokenAbi, signer);
-
         let underlyingAsset = await otoken.underlyingAsset();
         let collateralAsset = await otoken.collateralAsset();
         let strikeAsset = await otoken.strikeAsset();
@@ -98,7 +91,7 @@ exports.handler = async function(credentials) {
 
                 // need to improve this as this will push again price if price pushed equal to zero
                 if((expiryPrice[0].toNumber() == 0) && isLockingPeriodOver) {
-                    console.log('Pushing price now');
+                    console.log('Pushing cToken price now');
 
                     await pricer.setExpiryPriceInOracle(expiryTimestamp, {gasLimit: '1000000'});
                 }
