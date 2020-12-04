@@ -52,9 +52,11 @@ exports.handler = async function(credentials) {
     const currentTimestamp = Math.floor(new Date().getTime() / 1000);
     console.log('Current timestamp: ', currentTimestamp);    
 
-    const request = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd')
-    const price = new BigNumber((await request.json()).ethereum.usd)
-    console.log("Current WETH price: ", price.toString())
+    // let request = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd')
+    // const price = new BigNumber((await request.json()).ethereum.usd)    
+    let request = await fetch('https://api.pro.coinbase.com/products/ETH-USD/candles?granularity=3600')
+    let response = await request.json()
+    let price;
 
     // get all deployed otokens
     const otokensCounter = await otokenFactory.getOtokensLength();
@@ -64,6 +66,13 @@ exports.handler = async function(credentials) {
         let otoken = new ethers.Contract(otokenAddress, OtokenAbi, signer);
         let expiryTimestamp = await otoken.expiryTimestamp();
 
+        response.map(p => {
+            if(p[0] ==  expiryTimestamp) {
+                price = new BigNumber(p[3])
+            }
+        })
+        console.log("Current WETH price: ", price.toString())
+    
         if(currentTimestamp >= expiryTimestamp) {
             let underlyingAsset = await otoken.underlyingAsset();
             let collateralAsset = await otoken.collateralAsset();
