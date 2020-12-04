@@ -10,4 +10,3 @@ Bots, Bots everywhere using OZ Defender
 - Add `API_KEY` and `API_SECRET` (Relayer keys) and `INFURA_KEY` into `.env` file.
 - Run `yarn chainlink-pricer` for Chainlink pricer.
 - Run `yarn compound-pricer` for Compound pricer.
-- Run `yarn usdc-pricer` for USDC pricer.
