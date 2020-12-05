@@ -65,15 +65,15 @@ exports.handler = async function(credentials) {
         let otokenAddress = await otokenFactory.otokens(i);
         let otoken = new ethers.Contract(otokenAddress, OtokenAbi, signer);
         let expiryTimestamp = await otoken.expiryTimestamp();
-
-        response.map(p => {
-            if(p[0] ==  expiryTimestamp) {
-                price = new BigNumber(p[3])
-            }
-        })
-        console.log("Current WETH price: ", price.toString())
     
         if(currentTimestamp >= expiryTimestamp) {
+            response.map(p => {
+                if(p[0] ==  expiryTimestamp) {
+                    price = new BigNumber(p[3])
+                }
+            })
+            console.log("Current WETH price: ", price.toString())
+    
             let underlyingAsset = await otoken.underlyingAsset();
             let collateralAsset = await otoken.collateralAsset();
             let strikeAsset = await otoken.strikeAsset();
