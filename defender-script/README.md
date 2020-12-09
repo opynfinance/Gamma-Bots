@@ -21,10 +21,10 @@ Every Chainlink pricer bot have:
 - Loop through all Otoken contracts deployed from OtokenFactory
 - Get the underlying, strike and collateral asset from the Otoken
 - If
- - One of those assets is equal to the pricer asset
- - And current timestamp equal or passed the Otoken expiry timestamp 
- - And no price pushed before for this asset at this timestamp in the Oracle module
- - And pricer locking period is passed
+  - One of those assets is equal to the pricer asset
+  - And current timestamp equal or passed the Otoken expiry timestamp 
+  - And no price pushed before for this asset at this timestamp in the Oracle module
+  - And pricer locking period is passed
 - Then get the round ID from chainlink that correspond to the asset price at the expiry timestamp
 - Call the Pricer contract to submit price to Oracle module through `setExpiryPriceInOracle(expiryTimestamp, priceRoundId)`
 
@@ -34,8 +34,8 @@ Every Chainlink pricer bot have:
 - If current round timestamp greater or equal expiry timestamp
  - Get previous round ID and previosu round timestamp and store it
  - If previous round timestamp is different than zero
-  - If previous round timestamp is less than expiry timestamp then exit loop (roundTimestamp >= expiry && previousRoundTimestamp < expiry => round ID found)
-  - Else store previous round ID and timestamp in current round ID and decrease ID by 1
+   - If previous round timestamp is less than expiry timestamp then exit loop (roundTimestamp >= expiry && previousRoundTimestamp < expiry => round ID found)
+   - Else store previous round ID and timestamp in current round ID and decrease ID by 1
 
 ## Compound Pricer Autotask
 
