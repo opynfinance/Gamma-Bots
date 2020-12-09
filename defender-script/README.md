@@ -68,6 +68,11 @@ Every Chainlink pricer bot have:
 
 ## Chainlink Price Disputer: WETH/USD
 
+Chainlink disputer autotoask is a JS script that run every 1 min to disputer new WETH/USD pushed prices in case a specific price deviate a %X from the off-chain source.
+Chainlink disputer autotask have:
+- Relayer address: the wallet address used to make transactions (managed by OZ Defender)
+- AddressBook address: Gamma Addressbook module
+
 ### How It Work ?
 
 - Add `API_KEY` and `API_SECRET` (Relayer keys) and `INFURA_KEY` into `.env` file.
@@ -75,4 +80,16 @@ Every Chainlink pricer bot have:
 
 ### Functionalities
 
+- Get ETH hourly prices from coinbase
+- Loop through all Otoken contracts deployed from OtokenFactory
+- If current timestamp equal or passed otoken expiry timestamp
+  - loop through coinbase prices array, and get the price that correspond to the expiry timestamp
+  - Get the underlying, strike and collateral asset from the Otoken
+  - If
+    - One of those assets is equal to WETH
+    - And locking period is passed
+    - And dispute period is not over
+  - Get asset price(WETH) from Oracle and divide it by 1e8
+  - If price is different then 0 (price is pushed from pricer), calculate difference between on-chain and off-chain price
+  - If difference greater than 0.1% of the off-chain price, dispute oracle price by submitting off-chain price through `disputeExpiryPrice()` in Oracle.sol passing `WETH address`, `expiry timestamp` and the `new price` as args
 

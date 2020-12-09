@@ -11,7 +11,8 @@
   },
   "scripts": {
     "chainlink-pricer": "node chainlink-pricer-bot.js",
-    "compound-pricer": "node compound-pricer-bot.js"
+    "compound-pricer": "node compound-pricer-bot.js",
+    "chainlink-disputer:weth": "node chainlink-disputer-bot.js"
   },
   "keywords": [
     "Bots",
