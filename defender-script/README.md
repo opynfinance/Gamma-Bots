@@ -10,13 +10,18 @@ Bots, Bots everywhere using OZ Defender
 
 ## Chainlink Pricer Autotask
 
-Chainlink autotask is a JS script that run every 1 min to push a specific asset price from Chainlink to the Oracle module through the pricer contract.
+Chainlink pricer autotask is a JS script that run every 1 min to push a specific asset price from Chainlink to the Oracle module through the pricer contract.
 Every Chainlink pricer bot have:
 - Relayer address: the wallet address used to make transactions (managed by OZ Defender)
 - AddressBook address: Gamma Addressbook module
 - Pricer address: the pricer contract that handle pushing the asset price to the Oracle module
 
 ### How It Work ?
+
+- Add `API_KEY` and `API_SECRET` (Relayer keys) and `INFURA_KEY` into `.env` file.
+- Run `yarn chainlink-pricer` for Chainlink pricer.
+
+### Functionalities
 
 - Loop through all Otoken contracts deployed from OtokenFactory
 - Get the underlying, strike and collateral asset from the Otoken
@@ -39,10 +44,35 @@ Every Chainlink pricer bot have:
 
 ## Compound Pricer Autotask
 
+Compound pricer autotask is a JS script that run every 1 min to make a transaction to COmpound pricer contract to pull a specific cToken price in USD.
+Every Chainlink pricer bot have:
+- Relayer address: the wallet address used to make transactions (managed by OZ Defender)
+- AddressBook address: Gamma Addressbook module
+- Pricer address: the pricer contract that handle pushing the asset price to the Oracle module
+
+### How It Work ?
+
 - Add `API_KEY` and `API_SECRET` (Relayer keys) and `INFURA_KEY` into `.env` file.
-- Run `yarn chainlink-pricer` for Chainlink pricer.
 - Run `yarn compound-pricer` for Compound pricer.
 
-## Chainlink Pricer Disputer: WETH/USD
+### Functionalities
+
+- Loop through all Otoken contracts deployed from OtokenFactory
+- Get the underlying, strike and collateral asset from the Otoken
+- If
+  - One of those assets is equal to the pricer asset
+  - And current timestamp equal or passed otoken expiry timestamp
+  - And no price pushed before for this asset at this timestamp in the Oracle module
+  - And locking period is passed
+- Then make transaction to the pricer through `setExpiryPriceInOracle()` passing the expiry timestamp as arg
+
+## Chainlink Price Disputer: WETH/USD
+
+### How It Work ?
+
+- Add `API_KEY` and `API_SECRET` (Relayer keys) and `INFURA_KEY` into `.env` file.
+- Run `yarn chainlink-pricer` for Chainlink pricer.
+
+### Functionalities
 
 
