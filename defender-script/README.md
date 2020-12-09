@@ -11,7 +11,6 @@ Bots, Bots everywhere using OZ Defender
 ## Chainlink Pricer Autotask
 
 Chainlink pricer autotask is a JS script that run every 1 min to push a specific asset price from Chainlink to the Oracle module through the pricer contract.
-
 Every Chainlink pricer bot have:
 - Relayer address: the wallet address used to make transactions (managed by OZ Defender)
 - AddressBook address: Gamma Addressbook module
@@ -46,7 +45,6 @@ Every Chainlink pricer bot have:
 ## Compound Pricer Autotask
 
 Compound pricer autotask is a JS script that run every 1 min to make a transaction to COmpound pricer contract to pull a specific cToken price in USD.
-
 Every Chainlink pricer bot have:
 - Relayer address: the wallet address used to make transactions (managed by OZ Defender)
 - AddressBook address: Gamma Addressbook module
@@ -71,7 +69,6 @@ Every Chainlink pricer bot have:
 ## Chainlink Price Disputer: WETH/USD
 
 Chainlink disputer autotoask is a JS script that run every 1 min to disputer new WETH/USD pushed prices in case a specific price deviate a %X from the off-chain source.
-
 Chainlink disputer autotask have:
 - Relayer address: the wallet address used to make transactions (managed by OZ Defender)
 - AddressBook address: Gamma Addressbook module
