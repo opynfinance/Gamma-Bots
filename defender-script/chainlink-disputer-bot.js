@@ -86,12 +86,14 @@ exports.handler = async function(credentials) {
                 !isDisputePeriodOver
             ) {
                 let oraclePrice = new BigNumber(await oracle.getExpiryPrice(WETH, expiryTimestamp)).dividedBy(1e8)
-                let diff = price.isGreaterThan(oraclePrice) ? price.minus(oraclePrice) : oraclePrice.minus(price)
+                if(oraclePrice.toString() != "0") {
+                    let diff = price.isGreaterThan(oraclePrice) ? price.minus(oraclePrice) : oraclePrice.minus(price)
                 
-                if(diff.isGreaterThan(price.multipliedBy(0.1))) {
-                    console.log("Disputing price");
-
-                    await oracle.disputeExpiryPrice(WETH, expiryTimestamp, price.toString())
+                    if(diff.isGreaterThan(price.multipliedBy(0.1))) {
+                        console.log("Disputing price");
+    
+                        await oracle.disputeExpiryPrice(WETH, expiryTimestamp, price.toString())
+                    }    
                 }
             }
         }
