@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const { ethers } = require("ethers");
 const { DefenderRelaySigner } = require('defender-relay-client/lib/ethers');
+// const BigNumber = require('bignumber.js');
 
 const AddressBookAbi = require('./abi/AddressBook.json');
 const OtokenFactory = require('./abi/OtokenFactory.json');
@@ -38,12 +39,12 @@ exports.handler = async function(credentials) {
     // AddressBook: 0x7630e7dE53E3d1f298f653d27fcF3710c602331C
     // Pricer: 0x7Db1614710866899d3D99dE44c27b460db0c35eA
 
-    const relayerAddress = '0x5f4ee22c55931836949c4574a6a43473b3062fd7';
-    const addressbookAddress = '0x7630e7dE53E3d1f298f653d27fcF3710c602331C';
-    const pricerAddress = '0x7Db1614710866899d3D99dE44c27b460db0c35eA';         // WETH pricer
+    const relayerAddress = '0x69ba16f3c3c4711321f50ceecb6292985d35025b';
+    const addressbookAddress = '0x16124C5d58F58Fe3fce36C36C5c5Df67548d0CDf';
+    const pricerAddress = '0x6F8255f930820c765d2F378f60BA20c7252F9Aa0';         // WETH pricer
 
     // Initialize default provider and defender relayer signer
-    const provider = new ethers.providers.InfuraProvider('rinkeby', process.env.INFURA_KEY);
+    const provider = new ethers.providers.InfuraProvider('kovan', process.env.INFURA_KEY);
     const signer = new DefenderRelaySigner(credentials, provider, { 
         speed: 'fast', 
         from: relayerAddress,
@@ -107,27 +108,29 @@ exports.handler = async function(credentials) {
                 let previousRoundTimestamp;
 
                 // check if otoken price is not on-chain, and latest chainlink round timestamp is greater than otoken expiry timestamp and locking period over
-                if ((expiryPrice[0].toNumber() == 0) && (priceRoundTimestamp.toString() >= expiryTimestamp) && isLockingPeriodOver) {
+                if ((expiryPrice[0].toString() == '0') && (priceRoundTimestamp.toString() >= expiryTimestamp) && isLockingPeriodOver) {
+                    console.log("Otoken expiry timestamp: ", expiryTimestamp.toString())
+
                     // loop and decrease round id until previousRoundTimestamp < expiryTimestamp && priceRoundTimestamp >= expiryTimestamp
                     // if previous round timestamp != 0 && less than expiry timestamp then exit => price round id found
                     // else store previous round id in price round id (as we are searching for the first round id that it timestamp >= expiry timestamp)
-                    for (let j = priceRoundId.sub(1).toString(); j > 0; j--) {
+                    for (let j = priceRoundId.sub(1); j > 0; j = j.sub(1)) {
                         previousRoundId = j;
                         previousRoundTimestamp = await chainlinkAggregator.getTimestamp(j);
 
-                        if (previousRoundTimestamp.toString() != '0') {
+                        if (previousRoundTimestamp.toString() != '0') {    
                             if (previousRoundTimestamp.toString() < expiryTimestamp.toString()) {
                                 break;
                             }
                             else {
                                 priceRoundId = previousRoundId;
-                                priceRoundTimestamp = previousRoundTimestamp.toString();
+                                priceRoundTimestamp = previousRoundTimestamp;
                             }
                         } 
                     }
 
-                    console.log('Found round id: ', priceRoundId);
-                    console.log('Found round timestamp: ', priceRoundTimestamp);
+                    console.log('Found round id: ', priceRoundId.toString());
+                    console.log('Found round timestamp: ', priceRoundTimestamp.toString());
 
                     await pricer.setExpiryPriceInOracle(expiryTimestamp, priceRoundId, {gasLimit: '1000000'});
                 }
