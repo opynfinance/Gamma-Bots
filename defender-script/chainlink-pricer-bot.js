@@ -34,14 +34,10 @@ function isSupported(pricerAsset, underlyingAsset, collateralAsset, strikeAsset)
 
 // Entrypoint for the Autotask
 exports.handler = async function(credentials) {
-    // Rinkeby config
-    // Relayer: 0x5f4ee22c55931836949c4574a6a43473b3062fd7
-    // AddressBook: 0x7630e7dE53E3d1f298f653d27fcF3710c602331C
-    // Pricer: 0x7Db1614710866899d3D99dE44c27b460db0c35eA
-
+    // config
     const relayerAddress = '0x69ba16f3c3c4711321f50ceecb6292985d35025b';
     const addressbookAddress = '0x16124C5d58F58Fe3fce36C36C5c5Df67548d0CDf';
-    const pricerAddress = '0x6F8255f930820c765d2F378f60BA20c7252F9Aa0';         // WETH pricer
+    const pricerAddress = '0x6f8255f930820c765d2f378f60ba20c7252f9aa0';         // WETH pricer
 
     // Initialize default provider and defender relayer signer
     const provider = new ethers.providers.InfuraProvider('kovan', process.env.INFURA_KEY);
@@ -94,9 +90,7 @@ exports.handler = async function(credentials) {
         ) {
             let expiryTimestamp = await otoken.expiryTimestamp();
 
-            if (currentTimestamp >= expiryTimestamp) {
-                console.log('Expired Otoken: ', otoken.address);
-                
+            if (currentTimestamp >= expiryTimestamp) {                
                 // otoken expiry timestamp
                 let expiryPrice = await oracle.getExpiryPrice(pricerAsset, expiryTimestamp);
                 let isLockingPeriodOver = await oracle.isLockingPeriodOver(pricerAsset, expiryTimestamp);
@@ -109,6 +103,7 @@ exports.handler = async function(credentials) {
 
                 // check if otoken price is not on-chain, and latest chainlink round timestamp is greater than otoken expiry timestamp and locking period over
                 if ((expiryPrice[0].toString() == '0') && (priceRoundTimestamp.toString() >= expiryTimestamp) && isLockingPeriodOver) {
+                    console.log('Expired Otoken: ', otoken.address);
                     console.log("Otoken expiry timestamp: ", expiryTimestamp.toString())
 
                     // loop and decrease round id until previousRoundTimestamp < expiryTimestamp && priceRoundTimestamp >= expiryTimestamp
@@ -132,7 +127,9 @@ exports.handler = async function(credentials) {
                     console.log('Found round id: ', priceRoundId.toString());
                     console.log('Found round timestamp: ', priceRoundTimestamp.toString());
 
-                    await pricer.setExpiryPriceInOracle(expiryTimestamp, priceRoundId, {gasLimit: '1000000'});
+                    let tx = await pricer.setExpiryPriceInOracle(expiryTimestamp, priceRoundId, {gasLimit: '1000000'});
+
+                    console.log('Tx hash: ', tx.hash);
                 }
             }
         }        
