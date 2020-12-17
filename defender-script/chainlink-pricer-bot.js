@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const { ethers } = require("ethers");
-const { DefenderRelaySigner } = require('defender-relay-client/lib/ethers');
+const { DefenderRelaySigner, DefenderRelayProvider } = require('defender-relay-client/lib/ethers');
 // const BigNumber = require('bignumber.js');
 
 const AddressBookAbi = require('./abi/AddressBook.json');
@@ -40,7 +40,7 @@ exports.handler = async function(credentials) {
     const pricerAddress = '0x6f8255f930820c765d2f378f60ba20c7252f9aa0';         // WETH pricer
 
     // Initialize default provider and defender relayer signer
-    const provider = new ethers.providers.InfuraProvider('kovan', process.env.INFURA_KEY);
+    const provider = new DefenderRelayProvider(credentials);
     const signer = new DefenderRelaySigner(credentials, provider, { 
         speed: 'fast', 
         from: relayerAddress,
