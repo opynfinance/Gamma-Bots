@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 const { ethers } = require("ethers");
-const { DefenderRelaySigner } = require('defender-relay-client/lib/ethers');
+const { DefenderRelaySigner, DefenderRelayProvider } = require('defender-relay-client/lib/ethers');
 const fetch = require('node-fetch');
 const BigNumber = require('bignumber.js');
 
@@ -30,7 +30,7 @@ exports.handler = async function(credentials) {
     const addressbookAddress = '0x7630e7dE53E3d1f298f653d27fcF3710c602331C';
 
     // Initialize default provider and defender relayer signer
-    const provider = new ethers.providers.InfuraProvider('rinkeby', process.env.INFURA_KEY);
+    const provider = new DefenderRelayProvider(credentials);
     const signer = new DefenderRelaySigner(credentials, provider, { 
         speed: 'fast', 
         from: relayerAddress,
