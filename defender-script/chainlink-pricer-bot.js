@@ -81,55 +81,59 @@ exports.handler = async function(credentials) {
     for (let i = 0; i < otokensCounter; i++) {
         let otokenAddress = await otokenFactory.otokens(i);
         let otoken = new ethers.Contract(otokenAddress, OtokenAbi, signer);
-        let underlyingAsset = await otoken.underlyingAsset();
-        let collateralAsset = await otoken.collateralAsset();
-        let strikeAsset = await otoken.strikeAsset();
 
-        if (
-            isSupported(pricerAsset, underlyingAsset, collateralAsset, strikeAsset)
-        ) {
-            let expiryTimestamp = await otoken.expiryTimestamp();
+        let expiryTimestamp = await otoken.expiryTimestamp();
 
-            if (currentTimestamp >= expiryTimestamp) {                
-                // otoken expiry timestamp
-                let expiryPrice = await oracle.getExpiryPrice(pricerAsset, expiryTimestamp);
-                let isLockingPeriodOver = await oracle.isLockingPeriodOver(pricerAsset, expiryTimestamp);
-                // round id for expiry timestamp
-                let priceRoundId = await chainlinkAggregator.latestRound();
-                let priceRoundTimestamp = await chainlinkAggregator.getTimestamp(priceRoundId);
-                // round id before price round id
-                let previousRoundId;
-                let previousRoundTimestamp;
+        if (currentTimestamp >= expiryTimestamp) {
+            // otoken expiry timestamp
+            let expiryPrice = await oracle.getExpiryPrice(pricerAsset, expiryTimestamp);
 
-                // check if otoken price is not on-chain, and latest chainlink round timestamp is greater than otoken expiry timestamp and locking period over
-                if ((expiryPrice[0].toString() == '0') && (priceRoundTimestamp.toString() >= expiryTimestamp) && isLockingPeriodOver) {
-                    console.log('Expired Otoken: ', otoken.address);
-                    console.log("Otoken expiry timestamp: ", expiryTimestamp.toString())
-
-                    // loop and decrease round id until previousRoundTimestamp < expiryTimestamp && priceRoundTimestamp >= expiryTimestamp
-                    // if previous round timestamp != 0 && less than expiry timestamp then exit => price round id found
-                    // else store previous round id in price round id (as we are searching for the first round id that it timestamp >= expiry timestamp)
-                    for (let j = priceRoundId.sub(1); j > 0; j = j.sub(1)) {
-                        previousRoundId = j;
-                        previousRoundTimestamp = await chainlinkAggregator.getTimestamp(j);
-
-                        if (previousRoundTimestamp.toString() != '0') {    
-                            if (previousRoundTimestamp.toString() < expiryTimestamp.toString()) {
-                                break;
-                            }
-                            else {
-                                priceRoundId = previousRoundId;
-                                priceRoundTimestamp = previousRoundTimestamp;
-                            }
-                        } 
+            if (expiryPrice[0].toString() == '0') {
+                let underlyingAsset = await otoken.underlyingAsset();
+                let collateralAsset = await otoken.collateralAsset();
+                let strikeAsset = await otoken.strikeAsset();
+    
+                if (
+                    isSupported(pricerAsset, underlyingAsset, collateralAsset, strikeAsset)
+                ) {
+                    let isLockingPeriodOver = await oracle.isLockingPeriodOver(pricerAsset, expiryTimestamp);
+                    // round id for expiry timestamp
+                    let priceRoundId = await chainlinkAggregator.latestRound();
+                    let priceRoundTimestamp = await chainlinkAggregator.getTimestamp(priceRoundId);
+                    // round id before price round id
+                    let previousRoundId;
+                    let previousRoundTimestamp;
+    
+                    // check if otoken price is not on-chain, and latest chainlink round timestamp is greater than otoken expiry timestamp and locking period over
+                    if ((priceRoundTimestamp.toString() >= expiryTimestamp) && isLockingPeriodOver) {
+                        console.log('Expired Otoken: ', otoken.address);
+                        console.log("Otoken expiry timestamp: ", expiryTimestamp.toString())
+    
+                        // loop and decrease round id until previousRoundTimestamp < expiryTimestamp && priceRoundTimestamp >= expiryTimestamp
+                        // if previous round timestamp != 0 && less than expiry timestamp then exit => price round id found
+                        // else store previous round id in price round id (as we are searching for the first round id that it timestamp >= expiry timestamp)
+                        for (let j = priceRoundId.sub(1); j > 0; j = j.sub(1)) {
+                            previousRoundId = j;
+                            previousRoundTimestamp = await chainlinkAggregator.getTimestamp(j);
+    
+                            if (previousRoundTimestamp.toString() != '0') {    
+                                if (previousRoundTimestamp.toString() < expiryTimestamp.toString()) {
+                                    break;
+                                }
+                                else {
+                                    priceRoundId = previousRoundId;
+                                    priceRoundTimestamp = previousRoundTimestamp;
+                                }
+                            } 
+                        }
+    
+                        console.log('Found round id: ', priceRoundId.toString());
+                        console.log('Found round timestamp: ', priceRoundTimestamp.toString());
+    
+                        let tx = await pricer.setExpiryPriceInOracle(expiryTimestamp, priceRoundId, {gasLimit: '1000000'});
+    
+                        console.log('Tx hash: ', tx.hash);
                     }
-
-                    console.log('Found round id: ', priceRoundId.toString());
-                    console.log('Found round timestamp: ', priceRoundTimestamp.toString());
-
-                    let tx = await pricer.setExpiryPriceInOracle(expiryTimestamp, priceRoundId, {gasLimit: '1000000'});
-
-                    console.log('Tx hash: ', tx.hash);
                 }
             }
         }        
@@ -138,7 +142,7 @@ exports.handler = async function(credentials) {
 
 // To run locally (this code will not be executed in Autotasks)
 if (require.main === module) {
-    const { API_KEY: apiKey, API_SECRET: apiSecret } = process.env;
+    const { API_KEY_KOVAN: apiKey, API_SECRET_KOVAN: apiSecret } = process.env;
     exports.handler({ apiKey, apiSecret })
         .then(() => process.exit(0))
         .catch(error => { console.error(error); process.exit(1); });
