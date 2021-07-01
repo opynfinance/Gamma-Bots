@@ -12,7 +12,8 @@
   "scripts": {
     "chainlink-pricer": "node chainlink-pricer-bot.js",
     "compound-pricer": "node compound-pricer-bot.js",
-    "chainlink-disputer:weth": "node chainlink-disputer-bot.js"
+    "chainlink-disputer:weth": "node chainlink-disputer-bot.js",
+    "yearn-pricer": "node yearn-pricer.js"
   },
   "keywords": [
     "Bots",
