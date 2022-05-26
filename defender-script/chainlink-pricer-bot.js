@@ -14,11 +14,11 @@ const OtokenAbi = require('./abi/Otoken.json');
 // Entrypoint for the Autotask
 exports.handler = async function(credentials) {
     // config
-    const relayerAddress = '0x7d78c401c69c56cb21f4bf80c53afd92be0ae749';                    // Relayer address
-    const addressbookAddress = '0x57ADe7D5E9D2F45A07f8039Da7228ACC305fbeaF';                // AddressBook module
+    const relayerAddress = '0x282f13b62b4341801210657e3aa4ee1df69f4083';                    // Relayer address
+    const addressbookAddress = '0x2d3E178FFd961BD8C0b035C926F9f2363a436DdC';                // AddressBook module
     const pricerAddress = '0x669cC97687c792fc5369d7bdd38cC9CFb2056d98';                     // WETH pricer
-    const pricerAsset = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';                       // WETH address
-    const chainlinkAggregatorAddress = '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419';        // Chainlink price feed
+    const pricerAsset = '0xE32513090f05ED2eE5F3c5819C9Cce6d020Fefe7';                       // WETH address
+    const chainlinkAggregatorAddress = '0x5f0423B1a6935dc5596e7A24d98532b67A0AeFd8';        // Chainlink price feed
 
     // Initialize default provider and defender relayer signer
     const provider = new DefenderRelayProvider(credentials);
@@ -110,7 +110,7 @@ exports.handler = async function(credentials) {
 
 // To run locally (this code will not be executed in Autotasks)
 if (require.main === module) {
-    const { API_KEY_MAINTESTING: apiKey, API_SECRET_API_SECRET_KOVAN: apiSecret } = process.env;
+    const { API_KEY: apiKey, API_SECRET: apiSecret } = process.env;
     exports.handler({ apiKey, apiSecret })
         .then(() => process.exit(0))
         .catch(error => { console.error(error); process.exit(1); });
