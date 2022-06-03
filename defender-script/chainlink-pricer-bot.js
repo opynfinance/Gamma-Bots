@@ -16,7 +16,7 @@ exports.handler = async function(credentials) {
     // config
     const relayerAddress = '0x282f13b62b4341801210657e3aa4ee1df69f4083';                    // Relayer address
     const addressbookAddress = '0x2d3E178FFd961BD8C0b035C926F9f2363a436DdC';                // AddressBook module
-    const pricerAddress = '0x669cC97687c792fc5369d7bdd38cC9CFb2056d98';                     // WETH pricer
+    const pricerAddress = '0xFfe61399050D2ACABa00419248B8616A4Bf56F9E';                     // WETH pricer
     const pricerAsset = '0xE32513090f05ED2eE5F3c5819C9Cce6d020Fefe7';                       // WETH address
     const chainlinkAggregatorAddress = '0x5f0423B1a6935dc5596e7A24d98532b67A0AeFd8';        // Chainlink price feed
 
