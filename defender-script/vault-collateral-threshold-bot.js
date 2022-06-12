@@ -1,83 +1,135 @@
-require('dotenv').config();
+require("dotenv").config()
 
 // ## ARBITRUM RINKEBY:
+// OpynController: '0x2acb561509a082bf2c58ce86cd30df6c2c2017f6'
+// OpynAddressBook: '0x2d3E178FFd961BD8C0b035C926F9f2363a436DdC'
+// OpynOracle: '0xe4d64aed5e76bCcE2C255f3c819f4C3817D42f19'
+// OpynNewCalculator: '0xa91B46bDDB891fED2cEE626FB03E2929702951A6'
+// OpynOptionRegistry: '0xA6005cAcF024404d4335751d4dE8c23ff6EC5214'
+// priceFeed: '0xDbBF84a29515C783Ea183f92120be7Aa9120fA23'
+// volFeed: '0x41780543c3389040E0eb92B4FA2Cd049b712618B'
+// optionProtocol: '0x68b60cD8800e7D6CaF0309Bdc03BD2ce966693D1'
+// liquidityPool: '0xA7f49544f51f46E3bA2099A3aCad70502b8bc125'
+// authority: '0xDc0B3DFe65947C39815DBDbFD53Eb377d9D87EC4'
+// portfolioValuesFeed: '0x540932Ac16341384E273bDf888806F001003560B'
+// optionHandler: '0xC50bC3833C744dC115c71D3754f2BB0dc1F392eD'
+// opynInteractions: '0xBc5A1d61bA745275bdF3242EE231c9b8B1a99c0F'
+// normDist: '0x94130623A0a3d2c88d5B1b4f6780FF8C5343Cb0F'
+// BlackScholes: '0x152cA928CEc6357568e503632d83Aab066cC35d4'
+// optionsCompute: '0xed652E08488c0d02Ba8B108F5432Bee8F03fDcc9'
 
-// OpynController: '0xb2923CAbbC7dd78e9573D1D6d755E75dCB49CE47',
-// OpynAddressBook: '0x2d3E178FFd961BD8C0b035C926F9f2363a436DdC',
-// OpynOracle: '0xe4d64aed5e76bCcE2C255f3c819f4C3817D42f19',
-// OpynNewCalculator: '0xa91B46bDDB891fED2cEE626FB03E2929702951A6',
-// OpynOptionRegistry: '0x6973D330375D2423831FE551865E78d434fb861E',
-// priceFeed: '0x3F438709DEF8E2Bd9E4Af59179949851B510ddD8',
-// volFeed: '0xC1338Aae110fcFfbDA03bc3B433372F4eE1Bd17E',
-// optionProtocol: '0xa0b2b6b8959AdfD00531FcA4D9C54703e981efB8',
-// liquidityPool: '0x43A57D321fC8ED34F7C2DADf5ca9E21B0ce6B742',
-// authority: '0xa5AD6fE9C808f3961EA8821B541Eb948776cC567'
+const { ethers } = require("ethers")
+const {
+	DefenderRelaySigner,
+	DefenderRelayProvider
+} = require("defender-relay-client/lib/ethers")
 
-
-const { ethers } = require("ethers");
-const { DefenderRelaySigner, DefenderRelayProvider } = require('defender-relay-client/lib/ethers');
-// const BigNumber = require('bignumber.js');
-
-const AddressBookAbi = require('./abi/AddressBook.json');
-const OtokenFactory = require('./abi/OtokenFactory.json');
-const OracleAbi = require('./abi/Oracle.json');
-const ChainlinkPricerAbi = require('./abi/ChainLinkPricer.json');
-const AggregatorInterfaceAbi = require('./abi/AggregatorInterface.json');
-const OtokenAbi = require('./abi/Otoken.json');
-const OptionRegistryAbi = require("./abi/OptionRegistry.json");
+const optionRegistryAbi = require("./abi/OptionRegistry.json")
+const newConrollerAbi = require("./abi/NewController.json")
+// will contain a list of active vault IDs. i.e vaults which are still open and not settled/expired
+let arrayIds = []
+// block of the last events query
+// initially set to the block the optionRegistry was deployed at
+let lastQueryBlock = 12621911
+// vault count from the last time this function was called
+let previousVaultCount = 0
 
 // Entrypoint for the Autotask
-exports.handler = async function(credentials) {
-    // config
-    const relayerAddress = '0x06f4e3d50d16511740f742f7c5dc3ceca93d81f0';                    // Relayer address - updated
-    const addressbookAddress = '0x2d3E178FFd961BD8C0b035C926F9f2363a436DdC';                // AddressBook module
-    const pricerAddress = '0xFfe61399050D2ACABa00419248B8616A4Bf56F9E';                     // WETH pricer
-    const pricerAsset = '0xE32513090f05ED2eE5F3c5819C9Cce6d020Fefe7';                       // WETH address
-    const chainlinkAggregatorAddress = '0x5f0423B1a6935dc5596e7A24d98532b67A0AeFd8';        // Chainlink price feed
-    const optionRegistryAddress = '0x6973D330375D2423831FE551865E78d434fb861E';
+exports.handler = async function (credentials) {
+	// config
+	const relayerAddress = "0x06f4e3d50d16511740f742f7c5dc3ceca93d81f0" // Relayer address - updated
+	const optionRegistryAddress = "0xA6005cAcF024404d4335751d4dE8c23ff6EC5214"
+	const controllerAddress = "0x2acb561509a082bf2c58ce86cd30df6c2c2017f6"
 
-    // Initialize default provider and defender relayer signer
-    const provider = new DefenderRelayProvider(credentials);
-    const signer = new DefenderRelaySigner(credentials, provider, { 
-        speed: 'fast', 
-        from: relayerAddress,
-    });
+	// Initialize default provider and defender relayer signer
+	const provider = new DefenderRelayProvider(credentials)
+	const signer = new DefenderRelaySigner(credentials, provider, {
+		speed: "fast",
+		from: relayerAddress
+	})
 
-    // addressbook instance
-    const addressbook = new ethers.Contract(addressbookAddress, AddressBookAbi, signer);
-    // oracle address
-    const oracleAddress = await addressbook.getOracle();
-    // oracle instance
-    const oracle = new ethers.Contract(oracleAddress, OracleAbi, signer);
-    // pricer instance
-    const pricer = new ethers.Contract(pricerAddress, ChainlinkPricerAbi, signer);
-    // chainlink price feed instance
-    const chainlinkAggregator = new ethers.Contract(chainlinkAggregatorAddress, AggregatorInterfaceAbi, signer);
-    // Otoken expiry hour in UTC
-    const expiryHour = 8;
-    // option registry instance
-    const optionRegistry = new ethers.Contract(optionRegistryAddress, OptionRegistryAbi, signer)
+	// option registry instance
+	const optionRegistry = new ethers.Contract(
+		optionRegistryAddress,
+		optionRegistryAbi,
+		signer
+	)
 
-    console.log('Oracle: ', oracle.address);
-    console.log('Pricer: ', pricer.address);
-    console.log('Pricer asset: ', pricerAsset);
-    console.log('Chainlink aggregator: ', chainlinkAggregator.address);
-    console.log("Option registry address: ", optionRegistry.address)
+	// Opyn controller instance
+	const controller = new ethers.Contract(
+		controllerAddress,
+		newConrollerAbi,
+		signer
+	)
 
-    const vaultCount = await optionRegistry.vaultCount()
-    console.log("vault count:", vaultCount)
-    for (let i=0; i <= vaultCount; i++){
-        const [isBelowMin, isAboveMax, healthFactor, collatRequired, collatAsset] = await optionRegistry.checkVaultHealth(1)
-        console.log({isBelowMin, isAboveMax, healthFactor, collatRequired, collatAsset})
-    }
+	const currentBlock = await provider.getBlockNumber()
+	const events = await controller.queryFilter(
+		controller.filters.VaultSettled(),
+		lastQueryBlock
+	)
+	lastQueryBlock = currentBlock
+	const settledEventIds = events.map(event => event?.args?.vaultId.toNumber())
+	console.log({ settledEventIds })
 
+	// check how many vaults exist
+	const vaultCount = (await optionRegistry.vaultCount()).toNumber()
+	console.log("vault count:", vaultCount)
+	// create an array of new vault ids
+	const additionalVaultIds = Array.from(Array(vaultCount + 1).keys()).slice(
+		previousVaultCount + 1
+	)
+	console.log({ additionalVaultIds })
+	arrayIds.push(...additionalVaultIds)
+	previousVaultCount = vaultCount
 
+	// remove arrayids which appear in settledEventIds
+	arrayIds = arrayIds.filter(id => !settledEventIds.includes(id))
+	console.log({ arrayIds })
+
+	// iterate over vaults and check health. adjust if needed
+	if (arrayIds.length) {
+		for (let i = 0; i <= arrayIds.length - 1; i++) {
+			try {
+				const [
+					isBelowMin,
+					isAboveMax,
+					healthFactor,
+					collatRequired,
+					collatAsset
+				] = await optionRegistry.checkVaultHealth(arrayIds[i])
+
+				console.log({
+					arrayId: arrayIds[i],
+					isBelowMin,
+					isAboveMax,
+					healthFactor: healthFactor.toNumber(),
+					collatRequired: collatRequired.toNumber(),
+					collatAsset
+				})
+				if (isBelowMin || isAboveMax) {
+					await optionRegistry.adjustCollateral(arrayIds[i], {
+						gasLimit: 100000000
+					})
+				}
+			} catch (err) {
+				console.error(err)
+			}
+		}
+	}
 }
 
 // To run locally (this code will not be executed in Autotasks)
 if (require.main === module) {
-    const { VAULT_THRESHOLD_BOT_API_KEY: apiKey, VAULT_THRESHOLD_BOT_API_SECRET: apiSecret } = process.env;
-    exports.handler({ apiKey, apiSecret })
-        .then(() => process.exit(0))
-        .catch(error => { console.error(error); process.exit(1); });
+	const {
+		VAULT_THRESHOLD_BOT_API_KEY: apiKey,
+		VAULT_THRESHOLD_BOT_API_SECRET: apiSecret
+	} = process.env
+	exports
+		.handler({ apiKey, apiSecret })
+		.then(() => process.exit(0))
+		.catch(error => {
+			console.error(error)
+			console.log("error hit")
+			process.exit(1)
+		})
 }
