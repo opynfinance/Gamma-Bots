@@ -68,7 +68,9 @@ exports.handler = async function (credentials) {
 		lastQueryBlock
 	)
 	lastQueryBlock = currentBlock
-	const settledEventIds = events.map(event => event?.args?.vaultId.toNumber())
+	const settledEventIds = events
+		.filter(event => event?.args?.accountOwner == optionRegistryAddress)
+		.map(event => event?.args?.vaultId.toNumber())
 	console.log({ settledEventIds })
 
 	// check how many vaults exist
