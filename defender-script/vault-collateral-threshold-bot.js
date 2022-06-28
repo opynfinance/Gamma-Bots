@@ -23,21 +23,20 @@ const {
 	DefenderRelaySigner,
 	DefenderRelayProvider
 } = require("defender-relay-client/lib/ethers")
+const { KeyValueStoreClient } = require("defender-kvstore-client")
 
 const optionRegistryAbi = require("./abi/OptionRegistry.json")
-const newConrollerAbi = require("./abi/NewController.json")
-// will contain a list of active vault IDs. i.e vaults which are still open and not settled/expired
-let arrayIds = []
-// block of the last events query
-// initially set to the block the optionRegistry was deployed at
-let lastQueryBlock = 12621911
-// vault count from the last time this function was called
-let previousVaultCount = 0
+const newControllerAbi = require("./abi/NewController.json")
+
+// block that the option regsitry was deployed on
+const optionRegistryDeployBlock = 12621911
 
 // Entrypoint for the Autotask
+// Function to keep track of all active Vault IDs and periodically check their collateral health factors and add/remove collateral as needed
 exports.handler = async function (credentials) {
+	const store = new KeyValueStoreClient({ path: "./store.json" })
 	// config
-	const relayerAddress = "0x06f4e3d50d16511740f742f7c5dc3ceca93d81f0" // Relayer address - updated
+	const relayerAddress = "0x8a8b3efb77c973f54f7b072cff3bd47240aac605" // updated
 	const optionRegistryAddress = "0xA6005cAcF024404d4335751d4dE8c23ff6EC5214"
 	const controllerAddress = "0x2acb561509a082bf2c58ce86cd30df6c2c2017f6"
 
@@ -47,7 +46,29 @@ exports.handler = async function (credentials) {
 		speed: "fast",
 		from: relayerAddress
 	})
-
+	// the block number on which this function was last called
+	let lastQueryBlock
+	// an array of vaultIDs which need their health factor checking
+	let activeVaultIds
+	// the vaultCount for the option registry on the last function call
+	let previousVaultCount
+	try {
+		// get persistant variables from store
+		lastQueryBlock = parseInt(
+			await store.get("collateralThresholdLastQueryBlock")
+		)
+		activeVaultIds = JSON.parse(await store.get("activeVaultIds"))
+		previousVaultCount = parseInt(await store.get("previousVaultCount"))
+		console.log({ lastQueryBlock, activeVaultIds, previousVaultCount })
+	} catch (err) {
+		console.log("error retrieving data from store")
+	}
+	// if these are undefined, it must be the first function call or the data is corrupted so build from scratch
+	if (!activeVaultIds || !lastQueryBlock || !previousVaultCount) {
+		activeVaultIds = []
+		lastQueryBlock = optionRegistryDeployBlock
+		previousVaultCount = 0
+	}
 	// option registry instance
 	const optionRegistry = new ethers.Contract(
 		optionRegistryAddress,
@@ -58,39 +79,68 @@ exports.handler = async function (credentials) {
 	// Opyn controller instance
 	const controller = new ethers.Contract(
 		controllerAddress,
-		newConrollerAbi,
+		newControllerAbi,
 		signer
 	)
 
 	const currentBlock = await provider.getBlockNumber()
-	const events = await controller.queryFilter(
-		controller.filters.VaultSettled(),
-		lastQueryBlock
-	)
-	lastQueryBlock = currentBlock
-	const settledEventIds = events
-		.filter(event => event?.args?.accountOwner == optionRegistryAddress)
-		.map(event => event?.args?.vaultId.toNumber())
-	console.log({ settledEventIds })
+	// will contain emitted SettledVault events since the previous function execution
+	let events = []
+	// 10000 block range is max limit for queries for some providers
+	// if this is true something has probably gone wrong
+	if (currentBlock > lastQueryBlock + 10000) {
+		for (let i = lastQueryBlock; i <= currentBlock; i = i + 10000) {
+			// iterate over 10000 batches of blocks to catch up to currentBlock
+			const newEvents = await controller.queryFilter(
+				controller.filters.VaultSettled(),
+				i,
+				i + 9999
+			)
 
-	// check how many vaults exist
+			console.log({ newEvents })
+			if (newEvents.length) {
+				events.push(newEvents)
+			}
+		}
+	} else {
+		events = await controller.queryFilter(
+			controller.filters.VaultSettled(),
+			lastQueryBlock
+		)
+	}
+	console.log({ events })
+	// set last query block to current block value
+	await store.put("collateralThresholdLastQueryBlock", currentBlock.toString())
+	// return vault IDs of settled vault events where the vault owner is the option registry
+	let settledEventIds = []
+	if (events.length) {
+		settledEventIds = events
+			.filter(event => event?.args?.accountOwner == optionRegistryAddress)
+			.map(event => event?.args?.vaultId.toNumber())
+		console.log({ settledEventIds })
+	}
+	// check how many vaults have ever existed
 	const vaultCount = (await optionRegistry.vaultCount()).toNumber()
 	console.log("vault count:", vaultCount)
-	// create an array of new vault ids
+
+	// create an array of vault IDs that have been created since last execution
 	const additionalVaultIds = Array.from(Array(vaultCount + 1).keys()).slice(
 		previousVaultCount + 1
 	)
 	console.log({ additionalVaultIds })
-	arrayIds.push(...additionalVaultIds)
-	previousVaultCount = vaultCount
-
-	// remove arrayids which appear in settledEventIds
-	arrayIds = arrayIds.filter(id => !settledEventIds.includes(id))
-	console.log({ arrayIds })
+	// update previousVaultCount in storage
+	await store.put("previousVaultCount", vaultCount.toString())
+	// add newly created vault IDs to existing array of active vault IDs
+	activeVaultIds.push(...additionalVaultIds)
+	// remove activeVaultIds which appear in settledEventIds
+	activeVaultIds = activeVaultIds.filter(id => !settledEventIds.includes(id))
+	// update activeVaultIDs in storage
+	await store.put("activeVaultIds", JSON.stringify(activeVaultIds))
+	console.log({ activeVaultIds })
 
 	// iterate over vaults and check health. adjust if needed
-	if (arrayIds.length) {
-		for (let i = 0; i <= arrayIds.length - 1; i++) {
+	if (activeVaultIds.length) {
+		for (let i = 0; i <= activeVaultIds.length - 1; i++) {
 			try {
 				const [
 					isBelowMin,
@@ -98,10 +148,10 @@ exports.handler = async function (credentials) {
 					healthFactor,
 					collatRequired,
 					collatAsset
-				] = await optionRegistry.checkVaultHealth(arrayIds[i])
+				] = await optionRegistry.checkVaultHealth(activeVaultIds[i])
 
 				console.log({
-					arrayId: arrayIds[i],
+					arrayId: activeVaultIds[i],
 					isBelowMin,
 					isAboveMax,
 					healthFactor: healthFactor.toNumber(),
@@ -109,7 +159,7 @@ exports.handler = async function (credentials) {
 					collatAsset
 				})
 				if (isBelowMin || isAboveMax) {
-					await optionRegistry.adjustCollateral(arrayIds[i], {
+					await optionRegistry.adjustCollateral(activeVaultIds[i], {
 						gasLimit: 100000000
 					})
 				}
