@@ -5,18 +5,18 @@ require("dotenv").config()
 // OpynAddressBook: '0x2d3E178FFd961BD8C0b035C926F9f2363a436DdC'
 // OpynOracle: '0xe4d64aed5e76bCcE2C255f3c819f4C3817D42f19'
 // OpynNewCalculator: '0xa91B46bDDB891fED2cEE626FB03E2929702951A6'
-// OpynOptionRegistry: '0xA6005cAcF024404d4335751d4dE8c23ff6EC5214'
-// priceFeed: '0xDbBF84a29515C783Ea183f92120be7Aa9120fA23'
-// volFeed: '0x41780543c3389040E0eb92B4FA2Cd049b712618B'
-// optionProtocol: '0x68b60cD8800e7D6CaF0309Bdc03BD2ce966693D1'
-// liquidityPool: '0xA7f49544f51f46E3bA2099A3aCad70502b8bc125'
-// authority: '0xDc0B3DFe65947C39815DBDbFD53Eb377d9D87EC4'
-// portfolioValuesFeed: '0x540932Ac16341384E273bDf888806F001003560B'
-// optionHandler: '0xC50bC3833C744dC115c71D3754f2BB0dc1F392eD'
-// opynInteractions: '0xBc5A1d61bA745275bdF3242EE231c9b8B1a99c0F'
-// normDist: '0x94130623A0a3d2c88d5B1b4f6780FF8C5343Cb0F'
-// BlackScholes: '0x152cA928CEc6357568e503632d83Aab066cC35d4'
-// optionsCompute: '0xed652E08488c0d02Ba8B108F5432Bee8F03fDcc9'
+// OpynOptionRegistry: '0x051B162A50Fb91A52bBC8D80A2c9A6918A5e2fd4'
+// priceFeed: '0x6b133054A1143E2B1bCA3adDE9558bFa02D48E7E'
+// volFeed: '0x1ce8E39E6E02A1FedA7a1246a2470B2d224602B9'
+// optionProtocol: '0xb4A0CB2A21384CA1084D1488839700Db5574cd60'
+// liquidityPool: '0xd2327FbE765C298C54Fe7791B932465b288bADab'
+// authority: '0x52ebde684A8d4659B0981965ec60Ef6b73eaA82f'
+// portfolioValuesFeed: '0xa1d80cd1B471DD54c4eD657987Eeed45fd120EC7'
+// optionHandler: '0x6508A9d3dcedDe32c7e34Daab2aD7AEc3292A792'
+// opynInteractions: '0x4c2876B63e622A99195087a63ABA8aac46Cebed8'
+// normDist: '0x6219Fa7d61A8D1229825dcc81a93447228Ca80B9'
+// BlackScholes: '0x79027A9cA9a7aeD46B448117D8c3e3483a0A6182'
+// optionsCompute: '0x2BA8E86C6f281C253461B638d5FC7d021cc26616'
 
 const { ethers } = require("ethers")
 const {
@@ -29,7 +29,7 @@ const optionRegistryAbi = require("./abi/OptionRegistry.json")
 const newControllerAbi = require("./abi/NewController.json")
 
 // block that the option regsitry was deployed on
-const optionRegistryDeployBlock = 12621911
+const optionRegistryDeployBlock = 13730032
 
 // Entrypoint for the Autotask
 // Function to keep track of all active Vault IDs and periodically check their collateral health factors and add/remove collateral as needed
@@ -37,7 +37,7 @@ exports.handler = async function (credentials) {
 	const store = new KeyValueStoreClient({ path: "./store.json" })
 	// config
 	const relayerAddress = "0x8a8b3efb77c973f54f7b072cff3bd47240aac605" // updated
-	const optionRegistryAddress = "0xA6005cAcF024404d4335751d4dE8c23ff6EC5214"
+	const optionRegistryAddress = "0x8df7945043ECa2c94B139b71265b107a2dE8e8b3"
 	const controllerAddress = "0x2acb561509a082bf2c58ce86cd30df6c2c2017f6"
 
 	// Initialize default provider and defender relayer signer
@@ -52,6 +52,8 @@ exports.handler = async function (credentials) {
 	let activeVaultIds
 	// the vaultCount for the option registry on the last function call
 	let previousVaultCount
+	// multiple of upperHeathFactor above which extra collateral is removed
+	const upperhealthFactorBuffer = 1.1
 	try {
 		// get persistant variables from store
 		lastQueryBlock = parseInt(
@@ -62,6 +64,7 @@ exports.handler = async function (credentials) {
 		console.log({ lastQueryBlock, activeVaultIds, previousVaultCount })
 	} catch (err) {
 		console.log("error retrieving data from store")
+		console.log(err)
 	}
 	// if these are undefined, it must be the first function call or the data is corrupted so build from scratch
 	if (!activeVaultIds || !lastQueryBlock || !previousVaultCount) {
@@ -146,6 +149,7 @@ exports.handler = async function (credentials) {
 					isBelowMin,
 					isAboveMax,
 					healthFactor,
+					upperHealthFactor,
 					collatRequired,
 					collatAsset
 				] = await optionRegistry.checkVaultHealth(activeVaultIds[i])
@@ -155,10 +159,15 @@ exports.handler = async function (credentials) {
 					isBelowMin,
 					isAboveMax,
 					healthFactor: healthFactor.toNumber(),
-					collatRequired: collatRequired.toNumber(),
+					upperHealthFactor: upperHealthFactor.toNumber(),
+					collatRequired: parseInt(collatRequired, 16),
 					collatAsset
 				})
-				if (isBelowMin || isAboveMax) {
+				if (
+					isBelowMin ||
+					(isAboveMax &&
+						healthFactor > upperhealthFactorBuffer * upperHealthFactor)
+				) {
 					await optionRegistry.adjustCollateral(activeVaultIds[i], {
 						gasLimit: 100000000
 					})
