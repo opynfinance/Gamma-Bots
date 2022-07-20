@@ -50,7 +50,7 @@ exports.handler = async function (credentials) {
 		signer
 	)
 	// Otoken expiry hour in UTC
-	const expiryHour = 13
+	const expiryHour = 8
 
 	console.log("Oracle: ", oracle.address)
 	console.log("Pricer: ", pricer.address)
