@@ -34,9 +34,10 @@ const perpHedgingReactorAbi = require("./abi/PerpHedgingReactor.json")
 exports.handler = async function (credentials) {
 	// config
 	const relayerAddress = "0x5da1a4e25daa5e786e34cf224d37990de1fd7f20"
-	const optionRegistryAddress = "0x8df7945043ECa2c94B139b71265b107a2dE8e8b3"
-	const controllerAddress = "0x2acb561509a082bf2c58ce86cd30df6c2c2017f6"
 	const perpHedgingReactorAddress = "0xaE5AFaA42aaeEFf8f603F897c583bd4D3e09355b"
+
+	const minHealthFactor = 4000
+	const maxHealthFactor = 6000
 
 	// Initialize default provider and defender relayer signer
 	const provider = new DefenderRelayProvider(credentials)
@@ -54,7 +55,16 @@ exports.handler = async function (credentials) {
 	const [isBelowMin, isAboveMax, healthFactor, collateralToTransfer] =
 		await perpHedgingReactor.checkVaultHealth()
 
-	console.log({ isBelowMin, isAboveMax, healthFactor, collateralToTransfer })
+	if (healthFactor < minHealthFactor || healthFactor > maxHealthFactor) {
+		await perpHedgingReactor.syncAndUpdate()
+	}
+
+	console.log({
+		isBelowMin,
+		isAboveMax,
+		healthFactor: healthFactor.toNumber(),
+		collateralToTransfer: collateralToTransfer.toNumber()
+	})
 }
 
 // To run locally (this code will not be executed in Autotasks)
