@@ -21,7 +21,7 @@ require("dotenv").config()
 // uniswapV3HedgingReactor: '0xaa5FcA49bd299E7A3fd1a4b0CB89039413D5580C'
 // perpHedgingReactor: '0xaE5AFaA42aaeEFf8f603F897c583bd4D3e09355b'
 
-const { ethers } = require("ethers")
+const { ethers, BigNumber } = require("ethers")
 const {
 	DefenderRelaySigner,
 	DefenderRelayProvider
@@ -34,17 +34,21 @@ const perpHedgingReactorAbi = require("./abi/PerpHedgingReactor.json")
 exports.handler = async function (credentials) {
 	// config
 	const relayerAddress = "0x5da1a4e25daa5e786e34cf224d37990de1fd7f20"
-	const perpHedgingReactorAddress = "0xaE5AFaA42aaeEFf8f603F897c583bd4D3e09355b"
+	const perpHedgingReactorAddress = "0xed7a8131A77350967D0E0BF6290873F3f406567f"
 
-	const minHealthFactor = 4000
+	const minHealthFactor = 4800
 	const maxHealthFactor = 6000
 
 	// Initialize default provider and defender relayer signer
-	const provider = new DefenderRelayProvider(credentials)
-	const signer = new DefenderRelaySigner(credentials, provider, {
-		speed: "fast",
-		from: relayerAddress
-	})
+	const provider = new ethers.providers.JsonRpcProvider(
+		"http://18.117.106.118:8547/"
+		// "arbitrum-rinkeby"
+	)
+	const signer = new ethers.Wallet(
+		process.env.TESTNET_DEPLOYER_ACCOUNT_PK,
+		provider
+	)
+	console.log({ signer })
 
 	const perpHedgingReactor = new ethers.Contract(
 		perpHedgingReactorAddress,

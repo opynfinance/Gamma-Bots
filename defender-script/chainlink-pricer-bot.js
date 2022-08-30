@@ -8,11 +8,9 @@ const {
 // const BigNumber = require('bignumber.js');
 
 const AddressBookAbi = require("./abi/AddressBook.json")
-const OtokenFactory = require("./abi/OtokenFactory.json")
 const OracleAbi = require("./abi/Oracle.json")
 const ChainlinkPricerAbi = require("./abi/ChainLinkPricer.json")
 const AggregatorInterfaceAbi = require("./abi/AggregatorInterface.json")
-const OtokenAbi = require("./abi/Otoken.json")
 
 // Entrypoint for the Autotask
 exports.handler = async function (credentials) {
