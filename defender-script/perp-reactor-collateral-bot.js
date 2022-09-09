@@ -36,7 +36,7 @@ exports.handler = async function (credentials) {
 	const relayerAddress = "0x5da1a4e25daa5e786e34cf224d37990de1fd7f20"
 	const perpHedgingReactorAddress = "0xed7a8131A77350967D0E0BF6290873F3f406567f"
 
-	const minHealthFactor = 4800
+	const minHealthFactor = 4000
 	const maxHealthFactor = 6000
 
 	// Initialize default provider and defender relayer signer
@@ -60,7 +60,10 @@ exports.handler = async function (credentials) {
 		await perpHedgingReactor.checkVaultHealth()
 
 	if (healthFactor < minHealthFactor || healthFactor > maxHealthFactor) {
-		await perpHedgingReactor.syncAndUpdate()
+		const tx = await perpHedgingReactor.syncAndUpdate({
+			gasLimit: "10000000"
+		})
+		await tx.wait()
 	}
 
 	console.log({

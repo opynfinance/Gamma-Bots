@@ -15,10 +15,10 @@ const AggregatorInterfaceAbi = require("./abi/AggregatorInterface.json")
 // Entrypoint for the Autotask
 exports.handler = async function (credentials) {
 	// config
-	const relayerAddress = "0x282f13b62b4341801210657e3aa4ee1df69f4083" // Relayer address
+	const relayerAddress = "0xed7fe78d227b308768c64c409aee0b3ada79c686" // Relayer address
 	const addressbookAddress = "0x2d3E178FFd961BD8C0b035C926F9f2363a436DdC" // AddressBook module
-	const pricerAddress = "0x1521746ea80D243826724e826Eb5987DB414Beb5" // WETH pricer
-	const pricerAsset = "0xE32513090f05ED2eE5F3c5819C9Cce6d020Fefe7" // WETH address
+	const pricerAddress = "0x3c1b4C64010b10C66fc41e548C4C9A334DE2D5a5" // WETH pricer
+	const pricerAsset = "0xFCfbfcC11d12bCf816415794E5dc1BBcc5304e01" // WETH address
 	const chainlinkAggregatorAddress =
 		"0x5f0423B1a6935dc5596e7A24d98532b67A0AeFd8" // Chainlink price feed
 

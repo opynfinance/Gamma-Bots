@@ -37,7 +37,7 @@ exports.handler = async function (credentials) {
 	const store = new KeyValueStoreClient({ path: "./store.json" })
 	// config
 	const relayerAddress = "0x8a8b3efb77c973f54f7b072cff3bd47240aac605" // updated
-	const optionRegistryAddress = "0x8df7945043ECa2c94B139b71265b107a2dE8e8b3"
+	const optionRegistryAddress = "0x217D9CD001CFBc9A8E1b812752b537556e073D4f"
 	const controllerAddress = "0x2acb561509a082bf2c58ce86cd30df6c2c2017f6"
 
 	// Initialize default provider and defender relayer signer
@@ -168,9 +168,11 @@ exports.handler = async function (credentials) {
 					(isAboveMax &&
 						healthFactor > upperhealthFactorBuffer * upperHealthFactor)
 				) {
-					await optionRegistry.adjustCollateral(activeVaultIds[i], {
+					const tx = await optionRegistry.adjustCollateral(activeVaultIds[i], {
 						gasLimit: 100000000
 					})
+
+					await tx.wait()
 				}
 			} catch (err) {
 				console.error(err)
