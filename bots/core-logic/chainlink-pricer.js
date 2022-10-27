@@ -1,9 +1,9 @@
-const { ethers } = require("ethers")
+const { ethers } = require('ethers')
 
-const AddressBookAbi = require("../abi/AddressBook.json")
-const OracleAbi = require("../abi/Oracle.json")
-const ChainlinkPricerAbi = require("../abi/ChainLinkPricer.json")
-const AggregatorInterfaceAbi = require("../abi/AggregatorInterface.json")
+const AddressBookAbi = require('../abi/AddressBook.json')
+const OracleAbi = require('../abi/Oracle.json')
+const ChainlinkPricerAbi = require('../abi/ChainLinkPricer.json')
+const AggregatorInterfaceAbi = require('../abi/AggregatorInterface.json')
 
 const chainlinkPricerLogic = async (
 	signer,
@@ -32,12 +32,12 @@ const chainlinkPricerLogic = async (
 		signer
 	)
 	// Otoken expiry hour in UTC
-	const expiryHour = 8
+	const expiryHour = 9
 
-	console.log("Oracle: ", oracle.address)
-	console.log("Pricer: ", pricer.address)
-	console.log("Pricer asset: ", pricerAssetAddress)
-	console.log("Chainlink aggregator: ", chainlinkAggregator.address)
+	console.log('Oracle: ', oracle.address)
+	console.log('Pricer: ', pricer.address)
+	console.log('Pricer asset: ', pricerAssetAddress)
+	console.log('Chainlink aggregator: ', chainlinkAggregator.address)
 
 	// set expiry timestamp
 	let expiryTimestamp = new Date()
@@ -51,9 +51,9 @@ const chainlinkPricerLogic = async (
 	const hour = currentTimestamp.getHours()
 	currentTimestamp = Math.floor(currentTimestamp.getTime() / 1000)
 
-	console.log("Expiry timestamp: ", expiryTimestamp.toString())
-	console.log("Current timestamp: ", currentTimestamp)
-	console.log("Current hour: ", hour)
+	console.log('Expiry timestamp: ', expiryTimestamp.toString())
+	console.log('Current timestamp: ', currentTimestamp)
+	console.log('Current hour: ', hour)
 
 	if (hour == expiryHour) {
 		let expiryPrice = await oracle.getExpiryPrice(
@@ -65,7 +65,7 @@ const chainlinkPricerLogic = async (
 			expiryTimestamp
 		)
 
-		if (expiryPrice[0].toString() == "0" && isLockingPeriodOver) {
+		if (expiryPrice[0].toString() == '0' && isLockingPeriodOver) {
 			// round id for expiry timestamp
 			let priceRoundId = await chainlinkAggregator.latestRound()
 			let priceRoundTimestamp = await chainlinkAggregator.getTimestamp(
@@ -84,7 +84,7 @@ const chainlinkPricerLogic = async (
 					previousRoundId = j
 					previousRoundTimestamp = await chainlinkAggregator.getTimestamp(j)
 
-					if (previousRoundTimestamp.toString() != "0") {
+					if (previousRoundTimestamp.toString() != '0') {
 						if (
 							previousRoundTimestamp.toString() < expiryTimestamp.toString()
 						) {
@@ -96,19 +96,19 @@ const chainlinkPricerLogic = async (
 					}
 				}
 
-				console.log("Found round id: ", priceRoundId.toString())
-				console.log("Found round timestamp: ", priceRoundTimestamp.toString())
+				console.log('Found round id: ', priceRoundId.toString())
+				console.log('Found round timestamp: ', priceRoundTimestamp.toString())
 
 				let tx = await pricer.setExpiryPriceInOracle(
 					expiryTimestamp,
 					priceRoundId,
-					{ gasLimit: "1000000" }
+					{ gasLimit: '10000000' }
 				)
 
-				console.log("Tx hash: ", tx.hash)
+				console.log('Tx hash: ', tx.hash)
 			} else {
 				console.log(
-					"Chainlink latest round timestamp is not grater than or equal the expiry timestamp "
+					'Chainlink latest round timestamp is not grater than or equal the expiry timestamp '
 				)
 			}
 		}
