@@ -1,0 +1,465 @@
+[
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_clearingHouse",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_collateralAsset",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_wethAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_parentLiquidityPool",
+				"type": "address"
+			},
+			{
+				"internalType": "uint32",
+				"name": "_poolId",
+				"type": "uint32"
+			},
+			{
+				"internalType": "uint32",
+				"name": "_collateralId",
+				"type": "uint32"
+			},
+			{
+				"internalType": "address",
+				"name": "_priceFeed",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_authority",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "IncorrectCollateral",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "IncorrectDeltaChange",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "InvalidHealthFactor",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "int256",
+				"name": "accountMarketValue",
+				"type": "int256"
+			},
+			{
+				"internalType": "int256",
+				"name": "totalRequiredMargin",
+				"type": "int256"
+			}
+		],
+		"name": "InvalidTransactionNotEnoughMargin",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "NotKeeper",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "UNAUTHORIZED",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "ValueFailure",
+		"type": "error"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "contract IAuthority",
+				"name": "authority",
+				"type": "address"
+			}
+		],
+		"name": "AuthorityUpdated",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "accountId",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "authority",
+		"outputs": [
+			{
+				"internalType": "contract IAuthority",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "checkVaultHealth",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "isBelowMin",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "isAboveMax",
+				"type": "bool"
+			},
+			{
+				"internalType": "uint256",
+				"name": "health",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "collatToTransfer",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "clearingHouse",
+		"outputs": [
+			{
+				"internalType": "contract IClearingHouse",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "collateralAsset",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "collateralId",
+		"outputs": [
+			{
+				"internalType": "uint32",
+				"name": "",
+				"type": "uint32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getDelta",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "delta",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getPoolDenominatedValue",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "healthFactor",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "int256",
+				"name": "_delta",
+				"type": "int256"
+			}
+		],
+		"name": "hedgeDelta",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "deltaChange",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "initialiseReactor",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "internalDelta",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "keeper",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "parentLiquidityPool",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "poolId",
+		"outputs": [
+			{
+				"internalType": "uint32",
+				"name": "",
+				"type": "uint32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "priceFeed",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "contract IAuthority",
+				"name": "_newAuthority",
+				"type": "address"
+			}
+		],
+		"name": "setAuthority",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_healthFactor",
+				"type": "uint256"
+			}
+		],
+		"name": "setHealthFactor",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_keeper",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "_auth",
+				"type": "bool"
+			}
+		],
+		"name": "setKeeper",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bool",
+				"name": "_syncOnChange",
+				"type": "bool"
+			}
+		],
+		"name": "setSyncOnChange",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "sync",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "syncAndUpdate",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "syncOnChange",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "update",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "wETH",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_amount",
+				"type": "uint256"
+			}
+		],
+		"name": "withdraw",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]
