@@ -32,7 +32,7 @@ const chainlinkPricerLogic = async (
 		signer
 	)
 	// Otoken expiry hour in UTC
-	const expiryHour = 9
+	const expiryHour = 8
 
 	console.log('Oracle: ', oracle.address)
 	console.log('Pricer: ', pricer.address)
